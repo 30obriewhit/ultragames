@@ -2,6 +2,32 @@
 <html>
 
 <head>
+  <script>
+  // Clear localStorage and inject cloud save if present
+  const params = new URLSearchParams(window.location.search);
+  const injected = params.get('savedata');
+  if (injected) {
+    try {
+      localStorage.clear();
+      const saves = JSON.parse(atob(injected));
+      Object.keys(saves).forEach(key => {
+        localStorage.setItem(key, saves[key]);
+      });
+    } catch(e) {}
+  }
+
+  // Listen for save requests from Base44 parent page
+  window.addEventListener('message', function(e) {
+    if (e.data === 'REQUEST_SAVE') {
+      const allData = {};
+      for (let i = 0; i < localStorage.length; i++) {
+        const key = localStorage.key(i);
+        allData[key] = localStorage.getItem(key);
+      }
+      e.source.postMessage({ type: 'SAVE_DATA', payload: allData }, '*');
+    }
+  });
+</script>
 <meta charset="utf-8">
 <title>Website v2</title>
 <style>
